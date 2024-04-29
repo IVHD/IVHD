@@ -2,12 +2,29 @@
 name = "ivhd"
 version = "0.1.0"
 description = "A fast and simple algorithm for embedding large and high-dimensional data"
-authors = ["mjste <mj.stefanik@gmail.com>"]
+authors = [
+    "BlazejNowicki <blazej.a.now@gmail.com>",
+    "mjste <mj.stefanik@gmail.com>"
+]
+repository = "https://github.com/IVHD/IVHD"
+license = "MIT"
+packages = [
+    { include = "ivhd" }
+]
+
 readme = "README.md"
 
-[tool.poetry.dependencies]
-python = "^3.8"
 
+[tool.poetry.dependencies]
+python = "^3.9"
+numpy = "^1.20.0"
+
+scikit-learn = "*"
+
+[tool.poetry.group.dev.dependencies]
+mypy = "*"
+pre-commit = "*"
+pytest = "*"
 
 [build-system]
 requires = ["poetry-core"]

@@ -1,0 +1,13 @@
+.idea
+dataset
+.ipynb_checkpoints
+.pytest_cache
+__pycache__
+.coverage
+*.png
+*.svg
+*.pdf
+*.csv
+
+docs/modules/generated/
+docs/_build/
