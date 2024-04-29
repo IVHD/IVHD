@@ -1,5 +1,5 @@
-from .test import test
+from .ivhd import IVHD
 
 __all__ = [
-    "test",
+    "IVHD",
 ]
