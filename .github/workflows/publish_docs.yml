@@ -2,7 +2,7 @@ name: Deploy content to Pages
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
     paths:
       - 'docs/**'
 
