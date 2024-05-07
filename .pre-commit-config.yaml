@@ -1,0 +1,56 @@
+repos:
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.8
+    hooks:
+      - id: bandit
+        # turn off assert errors for tests
+        exclude: ^tests/
+        args:
+          - -s
+          - B101
+
+  - repo: https://github.com/psf/black
+    rev: 24.3.0
+    hooks:
+      - id: black
+
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: [ "--profile", "black", "--filter-files" ]
+
+  - repo: local
+    hooks:
+      # use local mypy instead of pre-commit hook, since this way we run in venv
+      # and have all dependencies
+      - id: mypy
+        name: mypy
+        entry: poetry run mypy --package ivhd --package tests
+        language: system
+        pass_filenames: false
+
+  - repo: local
+    hooks:
+      - id: poetry-plugin-sort
+        name: poetry-plugin-sort
+        entry: poetry sort
+        language: system
+        pass_filenames: false
+
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.15.2
+    hooks:
+      - id: pyupgrade
+        args: [ "--py39-plus" ]
+
+  - repo: https://github.com/yunojuno/pre-commit-xenon
+    rev: v0.1
+    hooks:
+      - id: xenon
+        args: [ "--max-average=B", "--max-modules=B", "--max-absolute=C" ]
