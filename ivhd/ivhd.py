@@ -10,7 +10,7 @@ class IVHD(BaseEstimator, TransformerMixin):
         nn: int = 2,
         rn: int = 1,
         c: float = 0.1,
-        delta: float = 0.3,
+        lambda_: float = 0.3,
         simulation_steps: int = 200,
         verbose: bool = False,
     ) -> None:
@@ -18,7 +18,7 @@ class IVHD(BaseEstimator, TransformerMixin):
         self.nn = nn
         self.rn = rn
         self.c = c
-        self.delta = delta
+        self.lambda_ = lambda_
         self.simulation_steps = simulation_steps
         self.verbose = verbose
 
@@ -26,8 +26,8 @@ class IVHD(BaseEstimator, TransformerMixin):
         nns = self._get_nearest_neighbors_indexes(X)
         rns = self._get_remote_neighbors_indexes(X)
 
-        a = (1 - self.delta) / (1 + self.delta)
-        b = self.c / (1 + self.delta)
+        a = (1 - self.lambda_) / (1 + self.lambda_)
+        b = self.c / (1 + self.lambda_)
 
         x = np.random.rand(X.shape[0], self.n_components)
         x_delta = np.random.rand(X.shape[0], self.n_components)
