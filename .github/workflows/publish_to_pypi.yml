@@ -1,34 +1,25 @@
 name: Publish Python package to PyPI
 
 on:
-  push:
-    tags:
-      - 'v*'
+  release:
+    types: [published]
+
+permissions:
+  contents: read
 
 jobs:
   build-and-publish:
-    name: Publish Python package to PyPI
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v4
 
     - name: Set up Python 3.9
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v5
       with:
         python-version: 3.9
 
     - name: Install Poetry
       uses: abatilo/actions-poetry@v3
-
-    - name: Configure Poetry for TestPyPI
-      run: >-
-        poetry config repositories.testpypi https://test.pypi.org/legacy/
-        && poetry config pypi-token.testpypi ${{ secrets.TEST_PYPI_API_TOKEN }}
-
-    - name: Build and publish to TestPyPI
-      run: >-
-        poetry build
-        && poetry publish --repository testpypi
 
     - name: Configure Poetry for PyPI
       run: poetry config pypi-token.pypi ${{ secrets.PYPI_API_TOKEN }}
