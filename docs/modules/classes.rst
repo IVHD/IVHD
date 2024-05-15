@@ -2,12 +2,21 @@
 API Reference
 =============
 
-This is the class and function reference of IVHD.
+.. automodule:: ivhd
+    :no-members:
+    :no-inherited-members:
+
 
 :mod: `ivhd`: IVHD class
 =========================================================
 
-.. automodule:: ivhd
+.. py:currentmodule:: ivhd
+
+.. autosummary::
+    :nosignatures:
+    :toctree: generated/
+
+    IVHD
 
 
 
