@@ -13,6 +13,7 @@ class IVHD(BaseEstimator, TransformerMixin):
         lambda_: float = 0.3,
         simulation_steps: int = 200,
         verbose: bool = False,
+        distance: str = 'euclidean'
     ) -> None:
         self.n_components = n_components
         self.nn = nn
@@ -21,6 +22,7 @@ class IVHD(BaseEstimator, TransformerMixin):
         self.lambda_ = lambda_
         self.simulation_steps = simulation_steps
         self.verbose = verbose
+        self.distance = distance
 
     def transform(self, X):
         nns = self._get_nearest_neighbors_indexes(X)
@@ -53,8 +55,7 @@ class IVHD(BaseEstimator, TransformerMixin):
         x_ik = x_i - x_k
 
         # (X.shape[0], rn)
-        d_ik = np.sum((x_i - x_k) ** 2, axis=-1)
-
+        d_ik = self._calculate_distance(self.distance, x_i, x_k)
         # (X.shape[0], rn, n_components)
         d_ik = np.repeat(d_ik[:, :, np.newaxis], self.n_components, axis=-1) + 1e8
 
@@ -83,3 +84,16 @@ class IVHD(BaseEstimator, TransformerMixin):
 
     def fit_transform(self, X, y=None, **fit_params):
         return self.transform(X)
+
+    def _calculate_distance(self, distance_string, x_i, x_k):
+        if distance_string == 'cosine':
+            top = np.sum(x_i * x_k, axis=-1)
+            bottom_i = np.linalg.norm(x_i, axis=-1)
+            bottom_k = np.linalg.norm(x_k, axis=-1)
+            return 1 - (top / (bottom_i * bottom_k))
+
+        elif distance_string == 'binary':
+            return np.sum(x_i != x_k, axis=-1)
+
+        else:
+            return np.sum((x_i - x_k) ** 2, axis=-1)
