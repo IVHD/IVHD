@@ -11,7 +11,7 @@ X = X / 255.
 # y = y[:30]
 
 
-ivhd_grad = IVHDGrad(steps=1000, nn=5, rn=2, optimizer='adam', optimizer_params={'lr': 0.01})
+ivhd_grad = IVHDGrad(steps=1000, nn=5, rn=2, optimizer='adam', optimizer_params={'lr': 0.01}, pos_weight=0.9, verbose=True, re_draw_remote_neighbors=True)
 start = time()
 X_ivhd_grad = ivhd_grad.fit_transform(X)
 stop = time()

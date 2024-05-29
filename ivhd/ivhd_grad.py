@@ -29,6 +29,7 @@ class IVHDGrad(BaseEstimator, TransformerMixin):
             n_components: int = 2,
             nn: int = 2,
             rn: int = 1,
+            pos_weight: float = 0.5,
             optimizer: str = 'adam',
             optimizer_params=None,
             steps: int = 200,
@@ -41,6 +42,7 @@ class IVHDGrad(BaseEstimator, TransformerMixin):
         self.n_components = n_components
         self.nn = nn
         self.rn = rn
+        self.pos_weight = pos_weight
         self.optimizer = optimizer
         self.optimizer_params = optimizer_params
         self.simulation_steps = steps
@@ -53,27 +55,27 @@ class IVHDGrad(BaseEstimator, TransformerMixin):
         rns = self._get_remote_neighbors_indexes(X)
 
         x = torch.rand(X.shape[0], self.n_components, requires_grad=True)
-        print(f" X shape: {x.shape}")
         optimizer = _optimizer_mapping[self.optimizer]([x], **self.optimizer_params)
 
-        for _ in range(self.simulation_steps):
+        for step in range(self.simulation_steps):
             neigborhoods = x[nns]
             if self.re_draw_remote_neighbors:
                 rns = self._get_remote_neighbors_indexes(X)
             remote_neigborhoods = x[rns]
 
             xu = x.unsqueeze(1)
-
             dist_emb_neighbor = ((xu - neigborhoods) ** 2 + self.epsilon).sum(dim=2).sqrt()
             dist_emb_remote = ((xu - remote_neigborhoods) ** 2 + self.epsilon).sum(dim=2).sqrt()
 
-            del_n = 0
-            del_r = 1
+            del_n = 0   # desired distance between point and its nearest neighbors
+            del_r = 1   # desired distance between point and its remote neighbors
 
             cost_emb_neighbor = ((dist_emb_neighbor - del_n) ** 2).sum()
             cost_emb_remote = ((dist_emb_remote - del_r) ** 2).sum()
 
-            cost = cost_emb_neighbor + cost_emb_remote
+            cost = 2 * (cost_emb_neighbor * self.pos_weight + cost_emb_remote * (1 - self.pos_weight))
+            if self.verbose:
+                print(f"Step: {step}\tCost: {cost}")
 
             optimizer.zero_grad()
             cost.backward()
