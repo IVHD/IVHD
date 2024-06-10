@@ -4,6 +4,46 @@ from sklearn.neighbors import NearestNeighbors
 
 
 class IVHD(BaseEstimator, TransformerMixin):
+    """
+    Implementation of Interactive Visualization of
+    High-dimensional Data tool (IVHD) [1]_.
+
+    IVHD is a dimensionality reduction algorithm that embeds high-dimensional data using
+    a force-directed approach. The algorithm is based on the idea of attracting nearest neighbors
+    and repelling remote neighbors. In contrast to most dimensionality reduction algorithms,
+    IVHD utilizes only constant number of nearest and remote neighbors, which makes it
+    particularly efficient for large datasets.
+
+    Parameters
+    ----------
+    n_components : int, default=2
+        Number of dimensions in the embedded space.
+
+    nn : int, default=2
+        Number of nearest neighbors for each point.
+
+    rn : int, default=1
+        Number of remote neighbors for each point.
+
+    c : float, default=0.1
+        Constant used in the force calculation.
+
+    lambda_ : float, default=0.3
+        Constant used in the force calculation.
+
+    simulation_steps : int, default=200
+        Number of simulation steps.
+
+    verbose : bool, default=False
+        Whether to print progress information during the simulation.
+
+    References
+    ----------
+    .. [1] `Dzwinel, Witold & Wcislo, Rafał & Matwin, Stan. (2018).
+        "ivhd: A fast and simple algorithm for embedding large and high-dimensional data."
+        <https://arxiv.org/pdf/1902.01108>`_
+
+    """
     def __init__(
         self,
         n_components: int = 2,

@@ -25,6 +25,8 @@ scikit-learn = "*"
 mypy = "*"
 pre-commit = "*"
 pytest = "*"
+pydata-sphinx-theme = "*"
+sphinx = "*"
 
 [build-system]
 requires = ["poetry-core"]
