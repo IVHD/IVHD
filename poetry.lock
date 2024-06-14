@@ -1696,6 +1696,27 @@ intel-openmp = "==2021.*"
 tbb = "==2021.*"
 
 [[package]]
+name = "mnists"
+version = "0.4.0"
+description = "MNISTs: All MNIST-like datasets in one package"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "mnists-0.4.0-py3-none-any.whl", hash = "sha256:7e40ade75094919222404397b0a14651095000179d20041e5bd99660c3cdd255"},
+    {file = "mnists-0.4.0.tar.gz", hash = "sha256:dcaf75933100a4f33b4e1f80638b76cf9e9b2a8c43fde93920fbe92ab7daa54f"},
+]
+
+[package.dependencies]
+numpy = [
+    {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
+    {version = ">=1.23.2", markers = "python_version >= \"3.11\" and python_version < \"3.12\""},
+    {version = ">=1.22", markers = "python_version < \"3.11\""},
+]
+
+[package.extras]
+tqdm = ["tqdm"]
+
+[[package]]
 name = "mpmath"
 version = "1.3.0"
 description = "Python library for arbitrary-precision floating-point arithmetic"
@@ -3585,4 +3606,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "d91dc75a0537958d8493d002dbc0c3c0091c86042e78608eb2a40bf08bff97e3"
+content-hash = "e2b23d50578f8c51c6de7cc3342cdbc46a9e6a9e10465300c8e9fefc7fea495e"
