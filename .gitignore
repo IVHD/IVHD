@@ -11,3 +11,4 @@ __pycache__
 
 docs/modules/generated/
 docs/_build/
+dist/
