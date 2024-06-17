@@ -133,7 +133,7 @@ class IVHD(BaseEstimator, TransformerMixin):
             return 1 - (top / (bottom_i * bottom_k))
 
         elif distance_string == 'binary':
-            return np.sum(x_i != x_k, axis=-1)
+            return np.sum((x_i - x_k) ** 2, axis=-1)
 
         else:
-            return np.sum((x_i - x_k) ** 2, axis=-1)
+            return np.linalg.norm(x_i - x_k, axis=-1)
