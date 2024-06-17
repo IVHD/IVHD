@@ -3,8 +3,6 @@ name: Deploy content to Pages
 on:
   push:
     branches: [ "main" ]
-    paths:
-      - 'docs/**'
 
   # allow running manually from the Actions tab
   workflow_dispatch:
