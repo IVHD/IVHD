@@ -62,8 +62,11 @@ class IVHD(BaseEstimator, TransformerMixin):
         self.simulation_steps = simulation_steps
         self.verbose = verbose
 
-    def transform(self, X, precomputedNN=None):
-        nns = self._get_nearest_neighbors_indexes(X, precomputedNN)
+    def transform(self, X, precomputed_nn_indices=None):
+        if precomputed_nn_indices is None:
+            nns = self._get_nearest_neighbors_indexes(X)
+        else:
+            nns = precomputed_nn_indices
         rns = self._get_remote_neighbors_indexes(X)
 
         a = (1 - self.lambda_) / (1 + self.lambda_)
@@ -104,18 +107,10 @@ class IVHD(BaseEstimator, TransformerMixin):
         f = -fnn - self.c * frn
         return f
 
-    def _get_nearest_neighbors_indexes(self, X: np.ndarray, precomputedNN) -> np.ndarray:
+    def _get_nearest_neighbors_indexes(self, X: np.ndarray) -> np.ndarray:
         # for every point in X find indexes of its 'nn' nearest neighbors
-        n_neighbors = self.nn + 1
-
-        if precomputedNN is None:
-            knn_model = NearestNeighbors(n_neighbors=n_neighbors)
-            knn_model.fit(X)
-        else:
-            if precomputedNN.n_neighbors != n_neighbors:
-                raise ValueError(f"Passed precomputed NearestNeighbors algorithm should have n_neighbors equal to {n_neighbors} ({self.nn}+1), but have {precomputedNN.n_neighbors}")
-            knn_model = precomputedNN
-
+        knn_model = NearestNeighbors(n_neighbors=self.nn + 1)
+        knn_model.fit(X)
         _, indices = knn_model.kneighbors(X)
         return indices[:, 1:]
 
@@ -129,5 +124,5 @@ class IVHD(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None, **fit_params):
         return self
 
-    def fit_transform(self, X, y=None, precomputedNN=None, **fit_params):
-        return self.transform(X, precomputedNN)
+    def fit_transform(self, X, y=None, precomputed_nn_indices=None, **fit_params):
+        return self.transform(X, precomputed_nn_indices)
