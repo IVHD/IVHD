@@ -54,6 +54,7 @@ class IVHDGrad(BaseEstimator, TransformerMixin):
         if precomputed_nn_indices is None:
             nns = self._get_nearest_neighbors_indexes(X)
         else:
+            self._validate_precomputed_nn_indices(X, precomputed_nn_indices)
             nns = precomputed_nn_indices
         rns = self._get_remote_neighbors_indexes(X)
 
@@ -85,6 +86,10 @@ class IVHDGrad(BaseEstimator, TransformerMixin):
             optimizer.step()
 
         return x.detach().numpy()
+
+    def _validate_precomputed_nn_indices(self, X, precomputed_nn_indices):
+        if precomputed_nn_indices.shape != (X.shape[0], self.nn):
+            raise ValueError(f"passed precomputed_nn_indices shape ({precomputed_nn_indices.shape}) does not match required shape ({(X.shape[0], self.nn)})")
 
     def _get_nearest_neighbors_indexes(self, X: np.ndarray) -> np.ndarray:
         # for every point in X find indexes of its 'nn' nearest neighbors

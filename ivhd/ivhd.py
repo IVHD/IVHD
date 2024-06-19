@@ -66,6 +66,7 @@ class IVHD(BaseEstimator, TransformerMixin):
         if precomputed_nn_indices is None:
             nns = self._get_nearest_neighbors_indexes(X)
         else:
+            self._validate_precomputed_nn_indices(X, precomputed_nn_indices)
             nns = precomputed_nn_indices
         rns = self._get_remote_neighbors_indexes(X)
 
@@ -81,6 +82,10 @@ class IVHD(BaseEstimator, TransformerMixin):
             x = x + x_delta
 
         return x
+
+    def _validate_precomputed_nn_indices(self, X, precomputed_nn_indices):
+        if precomputed_nn_indices.shape != (X.shape[0], self.nn):
+            raise ValueError(f"passed precomputed_nn_indices shape ({precomputed_nn_indices.shape}) does not match required shape ({(X.shape[0], self.nn)})")
 
     def _calculate_forces(self, x: np.ndarray, nns: np.ndarray, rns: np.ndarray):
         # (X.shape[0], nn, n_components)
