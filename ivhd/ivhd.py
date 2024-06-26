@@ -64,8 +64,12 @@ class IVHD(BaseEstimator, TransformerMixin):
         self.verbose = verbose
         self.distance = distance
 
-    def transform(self, X):
-        nns = self._get_nearest_neighbors_indexes(X)
+    def transform(self, X, precomputed_nn_indices=None):
+        if precomputed_nn_indices is None:
+            nns = self._get_nearest_neighbors_indexes(X)
+        else:
+            self._validate_precomputed_nn_indices(X, precomputed_nn_indices)
+            nns = precomputed_nn_indices
         rns = self._get_remote_neighbors_indexes(X)
 
         a = (1 - self.lambda_) / (1 + self.lambda_)
@@ -80,6 +84,10 @@ class IVHD(BaseEstimator, TransformerMixin):
             x = x + x_delta
 
         return x
+
+    def _validate_precomputed_nn_indices(self, X, precomputed_nn_indices):
+        if precomputed_nn_indices.shape != (X.shape[0], self.nn):
+            raise ValueError(f"passed precomputed_nn_indices shape ({precomputed_nn_indices.shape}) does not match required shape ({(X.shape[0], self.nn)})")
 
     def _calculate_forces(self, x: np.ndarray, nns: np.ndarray, rns: np.ndarray):
         # (X.shape[0], nn, n_components)
@@ -122,8 +130,8 @@ class IVHD(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None, **fit_params):
         return self
 
-    def fit_transform(self, X, y=None, **fit_params):
-        return self.transform(X)
+    def fit_transform(self, X, y=None, precomputed_nn_indices=None, **fit_params):
+        return self.transform(X, precomputed_nn_indices)
 
     def _calculate_distance(self, distance_string, x_i, x_k):
         if distance_string == 'cosine':

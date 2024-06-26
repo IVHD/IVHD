@@ -50,8 +50,12 @@ class IVHDGrad(BaseEstimator, TransformerMixin):
         self.re_draw_remote_neighbors = re_draw_remote_neighbors
         self.verbose = verbose
 
-    def transform(self, X):
-        nns = self._get_nearest_neighbors_indexes(X)
+    def transform(self, X, precomputed_nn_indices=None):
+        if precomputed_nn_indices is None:
+            nns = self._get_nearest_neighbors_indexes(X)
+        else:
+            self._validate_precomputed_nn_indices(X, precomputed_nn_indices)
+            nns = precomputed_nn_indices
         rns = self._get_remote_neighbors_indexes(X)
 
         x = torch.rand(X.shape[0], self.n_components, requires_grad=True)
@@ -83,6 +87,10 @@ class IVHDGrad(BaseEstimator, TransformerMixin):
 
         return x.detach().numpy()
 
+    def _validate_precomputed_nn_indices(self, X, precomputed_nn_indices):
+        if precomputed_nn_indices.shape != (X.shape[0], self.nn):
+            raise ValueError(f"passed precomputed_nn_indices shape ({precomputed_nn_indices.shape}) does not match required shape ({(X.shape[0], self.nn)})")
+
     def _get_nearest_neighbors_indexes(self, X: np.ndarray) -> np.ndarray:
         # for every point in X find indexes of its 'nn' nearest neighbors
         knn_model = NearestNeighbors(n_neighbors=self.nn + 1)
@@ -100,5 +108,5 @@ class IVHDGrad(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None, **fit_params):
         return self
 
-    def fit_transform(self, X, y=None, **fit_params):
-        return self.transform(X)
+    def fit_transform(self, X, y=None, precomputed_nn_indices=None, **fit_params):
+        return self.transform(X, precomputed_nn_indices)
