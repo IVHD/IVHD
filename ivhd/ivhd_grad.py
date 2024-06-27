@@ -1,44 +1,59 @@
 import numpy as np
+import torch
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.neighbors import NearestNeighbors
-import torch
 from torch.optim import (
+    ASGD,
+    LBFGS,
+    SGD,
     Adadelta,
     Adagrad,
     Adam,
-    AdamW,
-    SparseAdam,
     Adamax,
-    ASGD,
-    LBFGS,
+    AdamW,
     NAdam,
     RAdam,
     RMSprop,
     Rprop,
-    SGD
+    SparseAdam,
 )
 
-_optimizer_mapping = {cls.__name__.lower(): cls for cls in
-                      [Adadelta, Adagrad, Adam, AdamW, SparseAdam, Adamax, ASGD, LBFGS, NAdam, RAdam, RMSprop, Rprop,
-                       SGD]}
+_optimizer_mapping = {
+    cls.__name__.lower(): cls
+    for cls in [
+        Adadelta,
+        Adagrad,
+        Adam,
+        AdamW,
+        SparseAdam,
+        Adamax,
+        ASGD,
+        LBFGS,
+        NAdam,
+        RAdam,
+        RMSprop,
+        Rprop,
+        SGD,
+    ]
+}
 
 
 class IVHDGrad(BaseEstimator, TransformerMixin):
     def __init__(
-            self,
-            n_components: int = 2,
-            nn: int = 2,
-            rn: int = 1,
-            pos_weight: float = 0.5,
-            optimizer: str = 'adam',
-            optimizer_params=None,
-            steps: int = 200,
-            epsilon: float = 1e-15,
-            re_draw_remote_neighbors: bool = False,
-            verbose: bool = False,
+        self,
+        n_components: int = 2,
+        nn: int = 2,
+        rn: int = 1,
+        pos_weight: float = 0.5,
+        optimizer: str = "adam",
+        optimizer_params=None,
+        steps: int = 200,
+        epsilon: float = 1e-15,
+        re_draw_remote_neighbors: bool = False,
+        verbose: bool = False,
     ) -> None:
         if optimizer_params is None:
-            optimizer_params = {'lr': 0.01}
+            optimizer_params = {"lr": 0.01}
         self.n_components = n_components
         self.nn = nn
         self.rn = rn
@@ -50,8 +65,12 @@ class IVHDGrad(BaseEstimator, TransformerMixin):
         self.re_draw_remote_neighbors = re_draw_remote_neighbors
         self.verbose = verbose
 
-    def transform(self, X):
-        nns = self._get_nearest_neighbors_indexes(X)
+    def transform(self, X, precomputed_nn_indices=None):
+        if precomputed_nn_indices is None:
+            nns = self._get_nearest_neighbors_indexes(X)
+        else:
+            self._validate_precomputed_nn_indices(X, precomputed_nn_indices)
+            nns = precomputed_nn_indices
         rns = self._get_remote_neighbors_indexes(X)
 
         x = torch.rand(X.shape[0], self.n_components, requires_grad=True)
@@ -64,16 +83,23 @@ class IVHDGrad(BaseEstimator, TransformerMixin):
             remote_neigborhoods = x[rns]
 
             xu = x.unsqueeze(1)
-            dist_emb_neighbor = ((xu - neigborhoods) ** 2 + self.epsilon).sum(dim=2).sqrt()
-            dist_emb_remote = ((xu - remote_neigborhoods) ** 2 + self.epsilon).sum(dim=2).sqrt()
+            dist_emb_neighbor = (
+                ((xu - neigborhoods) ** 2 + self.epsilon).sum(dim=2).sqrt()
+            )
+            dist_emb_remote = (
+                ((xu - remote_neigborhoods) ** 2 + self.epsilon).sum(dim=2).sqrt()
+            )
 
-            del_n = 0   # desired distance between point and its nearest neighbors
-            del_r = 1   # desired distance between point and its remote neighbors
+            del_n = 0  # desired distance between point and its nearest neighbors
+            del_r = 1  # desired distance between point and its remote neighbors
 
             cost_emb_neighbor = ((dist_emb_neighbor - del_n) ** 2).sum()
             cost_emb_remote = ((dist_emb_remote - del_r) ** 2).sum()
 
-            cost = 2 * (cost_emb_neighbor * self.pos_weight + cost_emb_remote * (1 - self.pos_weight))
+            cost = 2 * (
+                cost_emb_neighbor * self.pos_weight
+                + cost_emb_remote * (1 - self.pos_weight)
+            )
             if self.verbose:
                 print(f"Step: {step}\tCost: {cost}")
 
@@ -82,6 +108,13 @@ class IVHDGrad(BaseEstimator, TransformerMixin):
             optimizer.step()
 
         return x.detach().numpy()
+
+    def _validate_precomputed_nn_indices(self, X, precomputed_nn_indices):
+        if precomputed_nn_indices.shape != (X.shape[0], self.nn):
+            raise ValueError(
+                f"passed precomputed_nn_indices shape ({precomputed_nn_indices.shape}) does"
+                " not match required shape ({(X.shape[0], self.nn)})"
+            )
 
     def _get_nearest_neighbors_indexes(self, X: np.ndarray) -> np.ndarray:
         # for every point in X find indexes of its 'nn' nearest neighbors
@@ -100,5 +133,5 @@ class IVHDGrad(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None, **fit_params):
         return self
 
-    def fit_transform(self, X, y=None, **fit_params):
-        return self.transform(X)
+    def fit_transform(self, X, y=None, precomputed_nn_indices=None, **fit_params):
+        return self.transform(X, precomputed_nn_indices)
