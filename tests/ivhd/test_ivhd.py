@@ -1,10 +1,10 @@
 import numpy as np
-from mnists import MNIST
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
 from ivhd import IVHD
+from tests.ivhd.utils import load_mnist
 
 
 def test_ivhd_interface():
@@ -17,16 +17,11 @@ def test_ivhd_interface():
     assert X_ivhd.dtype == np.float64
     assert X_ivhd.shape == (100, 2)
 
-    # TODO test with different parameters
-
 
 def test_ivhd_performance_on_mnist():
     # Load a subset of MNIST dataset to limit execution times
     SUBSET_SIZE = 10000  # / 60000
-    mnist = MNIST()
-    X = mnist.train_images()[:SUBSET_SIZE]
-    y = mnist.train_labels()[:SUBSET_SIZE]
-    X = X.reshape(-1, 28 * 28)
+    X, y = load_mnist(SUBSET_SIZE)
 
     ivhd = IVHD(simulation_steps=1000, nn=5, rn=2, lambda_=0.95, c=0.05)
     X_ivhd = ivhd.fit_transform(X)
