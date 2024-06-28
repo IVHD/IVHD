@@ -51,6 +51,7 @@ class IVHDGrad(BaseEstimator, TransformerMixin):
         epsilon: float = 1e-15,
         re_draw_remote_neighbors: bool = False,
         verbose: bool = False,
+        distance: str = "euclidean",
     ) -> None:
         if optimizer_params is None:
             optimizer_params = {"lr": 0.01}
@@ -64,6 +65,7 @@ class IVHDGrad(BaseEstimator, TransformerMixin):
         self.epsilon = epsilon
         self.re_draw_remote_neighbors = re_draw_remote_neighbors
         self.verbose = verbose
+        self.distance = distance
 
     def transform(self, X, precomputed_nn_indices=None):
         if precomputed_nn_indices is None:
@@ -77,17 +79,17 @@ class IVHDGrad(BaseEstimator, TransformerMixin):
         optimizer = _optimizer_mapping[self.optimizer]([x], **self.optimizer_params)
 
         for step in range(self.simulation_steps):
-            neigborhoods = x[nns]
+            neighborhoods = x[nns]
             if self.re_draw_remote_neighbors:
                 rns = self._get_remote_neighbors_indexes(X)
-            remote_neigborhoods = x[rns]
+            remote_neighborhoods = x[rns]
 
             xu = x.unsqueeze(1)
-            dist_emb_neighbor = (
-                ((xu - neigborhoods) ** 2 + self.epsilon).sum(dim=2).sqrt()
+            dist_emb_neighbor = self._calculate_distance(
+                self.distance, xu, neighborhoods
             )
-            dist_emb_remote = (
-                ((xu - remote_neigborhoods) ** 2 + self.epsilon).sum(dim=2).sqrt()
+            dist_emb_remote = self._calculate_distance(
+                self.distance, xu, remote_neighborhoods
             )
 
             del_n = 0  # desired distance between point and its nearest neighbors
@@ -135,3 +137,16 @@ class IVHDGrad(BaseEstimator, TransformerMixin):
 
     def fit_transform(self, X, y=None, precomputed_nn_indices=None, **fit_params):
         return self.transform(X, precomputed_nn_indices)
+
+    def _calculate_distance(self, distance_string, x_i, x_k):
+        if distance_string == "cosine":
+            top = (x_i * x_k).sum(dim=-1)
+            bottom_i = torch.norm(x_i, p=2, dim=-1)
+            bottom_k = torch.norm(x_k, p=2, dim=-1)
+            return 1 - (top / (bottom_i * bottom_k + self.epsilon))
+
+        elif distance_string == "binary":
+            return ((x_i - x_k) ** 2).sum(dim=-1)
+
+        else:
+            return torch.norm(x_i - x_k, p=2, dim=-1)
