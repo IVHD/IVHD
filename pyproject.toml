@@ -22,12 +22,13 @@ scikit-learn = "*"
 torch = "^2.3.0"
 
 [tool.poetry.group.dev.dependencies]
-matplotlib = "*"
 jupyter = "*"
+matplotlib = "*"
 mypy = "*"
+pandas = "^2.2.2"
 pre-commit = "*"
-pytest = "*"
 pydata-sphinx-theme = "*"
+pytest = "*"
 sphinx = "*"
 
 [build-system]
